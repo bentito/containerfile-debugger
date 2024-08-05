@@ -12,6 +12,7 @@ import (
 
 	"github.com/containers/buildah"
 	"github.com/containers/image/v5/transports/alltransports"
+	"github.com/containers/image/v5/types"
 	"github.com/containers/storage"
 	"github.com/containers/storage/pkg/reexec"
 )
@@ -126,10 +127,15 @@ func writeLines(lines []string, file string) error {
 }
 
 func runBuildah(file string) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalf("error getting user home directory: %v", err)
+	}
+
 	storeOptions := storage.StoreOptions{
-		GraphDriverName:    "overlay",
-		GraphRoot:          "/var/lib/containers/storage",
-		RunRoot:            "/var/run/containers/storage",
+		GraphDriverName:    "vfs",
+		GraphRoot:          homeDir + "/.local/share/containers/storage",
+		RunRoot:            homeDir + "/.local/share/containers/run",
 		GraphDriverOptions: []string{},
 	}
 
@@ -139,10 +145,16 @@ func runBuildah(file string) {
 	}
 
 	ctx := context.Background()
+	systemContext := &types.SystemContext{
+		ArchitectureChoice: "arm64",
+		OSChoice:           "linux",
+		VariantChoice:      "v8",
+	}
 
-	// Create a new builder
+	// Create a new builder with specified architecture and OS
 	builder, err := buildah.NewBuilder(ctx, store, buildah.BuilderOptions{
-		FromImage: "docker://alpine:latest",
+		FromImage:     "docker://alpine:latest",
+		SystemContext: systemContext,
 	})
 	if err != nil {
 		log.Fatalf("error creating builder: %v", err)
