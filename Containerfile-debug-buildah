@@ -1,0 +1,11 @@
+# Use Fedora as the base image
+FROM fedora:latest
+
+# Install Buildah and necessary tools
+RUN dnf -y install buildah fuse-overlayfs
+
+# Set up the environment for running Buildah
+ENV STORAGE_DRIVER=vfs
+
+# Set entrypoint to Buildah
+ENTRYPOINT ["buildah"]

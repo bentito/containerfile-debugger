@@ -29,3 +29,5 @@ bin/
 /vendor/
 /go.sum
 /.idea/
+/buildah-run.sh
+/tempfile
